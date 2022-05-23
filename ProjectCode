@@ -143,6 +143,24 @@ void setup() {
 }
 
 void loop() {
+
+
+unsigned long currentMillis = millis();
+  // if WiFi is down, try reconnecting every CHECK_WIFI_TIME seconds
+  if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interval)) {
+    Serial.println("Reconnecting to WiFi...");
+    WiFi.disconnect();
+    //WiFi.reconnect();
+    // Connect to Wi-Fi
+  WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+    }
+  if (WiFi.status() == WL_CONNECTED){
+    Serial.println("\nWiFi connected Successfully!");
+}
+    previousMillis = currentMillis;
+  }
   if (changeState){
 
       // If chnangeState has occured, invert the current door state   
@@ -184,7 +202,6 @@ void loop() {
   Serial.print("Requesting URL: ");
 
   Serial.println(url);
-
      // This will send the request to the server
 
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
