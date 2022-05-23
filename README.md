@@ -6,6 +6,7 @@
 > Connected the reed switch to an ESP32 GPIO to detect changes in its state.
 > Notifies user/ owner about the status of the door through email.
 > The email notifications is sent using IFTTT, and the ESP32 board is programmed using Arduino IDE.
+> IFTTT is a free service which stands for “If This Then That” which is used to send email notification.
 > SMTP server can also be used instead of IFTTT
 > User/ owner can also check the status of the door at any time through web server.
 > Monitors status of all kinds of doors (sliding or rotating).
