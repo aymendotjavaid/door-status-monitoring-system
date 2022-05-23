@@ -212,6 +212,7 @@ while(client.connected())
       delay(50);
     };
   }
+  
   Serial.println();
   Serial.println("closing connection");
   client.stop();
