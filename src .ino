@@ -14,14 +14,20 @@ bool changeState = false;
 bool state;
 String doorState; 
 
+//wifi ssid and password
 const char* ssid = "Android";
 const char* password = "password";
+
+//IFTTT constants
 const char* host = "maker.ifttt.com";
 const char* apiKey = "mksnH5Hj0vKPnXlt26CV4SefTY-DdfDOAuodPN9skLw";
 const char* event = "Door_Monitor";
+
+//to check internet connection after the interval of 30 seconds
 unsigned long previousMillis = 0;
 unsigned long interval = 30000;
 
+//Function Prototype
 void send_email();
 
 // Runs whenever the reedswitch changes state
@@ -30,7 +36,7 @@ ICACHE_RAM_ATTR void changeDoorStatus() {
   changeState = true;
 }
 
-
+// Runs to change the status of the door on web server
 String readDoorStatus() {
   int reed_status;
   reed_status = digitalRead(reedSwitch);
@@ -44,7 +50,7 @@ String readDoorStatus() {
   return String(reed_status);
 }
 
-
+//HTML CSS Javascript of the web server
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
 <head>
@@ -56,6 +62,7 @@ const char index_html[] PROGMEM = R"rawliteral(
      margin: 0px auto;
      text-align: center;
     }
+
     h2 { font-size: 3.0rem; }
     p { font-size: 3.0rem; }
     .units { font-size: 1.2rem; }
@@ -66,6 +73,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
   </style>
 </head>
+
 <body>
   <h2>ESP32 Intruder Alert!</h2>
   <p>
@@ -81,15 +89,17 @@ setInterval(function ( ) {
       document.getElementById("doorStatus").innerHTML = this.responseText;
     }
   };
+
   xhttp.open("GET", "/doorStatus", true);
   xhttp.send();
 }, 5000 ) ;
 </script>
-</html>)rawliteral";
-
+</html>
+)rawliteral";
 
 String processor(const String& var){
 if(var == "DOORSTATUS"){
+  //Function call to make changes on the webserver
     return readDoorStatus();
   }
   return String();
@@ -136,9 +146,11 @@ void setup() {
   server.begin();
 }
 
+
 void loop() {
 unsigned long currentMillis = millis();
-// if WiFi is down, try reconnecting
+// check if wifi is wroking
+//if not, reconnect the wifi
 if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interval)) {
   Serial.print(millis());
   Serial.println("Reconnecting to WiFi...");
@@ -154,8 +166,13 @@ if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interva
   Serial.println(WiFi.localIP());
   previousMillis = currentMillis;
 }
+
+//executes the following code if status of door has changed
   if (changeState){ 
+    //invert the state of the door
       state = !state;
+
+      //check if the door is open or close
       if(state) {
         doorState = "open";
         //Turn on buzzer if door is open
@@ -167,12 +184,15 @@ if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interva
         doorState = "close";
       }
 
+      //Set changeState variable to false so that it can monitor the next change
       changeState = false;
+
+      //Print state of thed door for debugging purposes
       Serial.println(state);
       Serial.println("Door is: ");
       Serial.println(doorState);
 
-      //Send email
+      //Notify user through an email if an intruder is detected
       if(doorState == "open"){
       Serial.println("Notifying owner..");
       send_email();
@@ -180,6 +200,7 @@ if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >=interva
     }  
  }
 
+//Runs when an email is to be sent
 void send_email(){
       Serial.print("connecting to ");
       Serial.println(host);
@@ -212,7 +233,6 @@ while(client.connected())
       delay(50);
     };
   }
-  
   Serial.println();
   Serial.println("closing connection");
   client.stop();
