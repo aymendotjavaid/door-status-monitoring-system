@@ -12,3 +12,11 @@
 > SMTP server can also be used instead of IFTTT
 > User/ owner can also check the status of the door at any time through web server.
 > Monitors status of all kinds of doors (sliding or rotating).
+
+> HARDWARE COMPONENTS USED:
+- ESP32 
+- 1× Magnetic Reed Switch 
+- 1× breadboard
+- Jumper wires
+- Buzzer/ Alarm
+- MicroUSB wire
