@@ -36,10 +36,12 @@ String readDoorStatus() {
   reed_status = digitalRead(reedSwitch);
   if (reed_status == 1){
       //Turn on buzzer if door is open
+    digitalWrite(buzzer, HIGH);
     return String("Opened");
   }
   else{
       //Do not turn on the buzzer if door is closed
+    digitalWrite(buzzer, LOW);
     return String("Closed");
   }
   delay(1000);
@@ -113,7 +115,7 @@ void setup() {
   // Set the reedswitch pin as interrupt, assign interrupt function and set CHANGE mode
   attachInterrupt(digitalPinToInterrupt(reedSwitch), changeDoorStatus, CHANGE);
   
-
+  WiFi.mode(WIFI_STA);
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
@@ -141,7 +143,6 @@ void setup() {
 }
 
 void loop() {
-
   if (changeState){
 
       // If chnangeState has occured, invert the current door state   
