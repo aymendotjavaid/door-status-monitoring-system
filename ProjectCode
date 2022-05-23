@@ -2,9 +2,8 @@
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
 
-// Set GPIOs for LED and reedswitch
-const int reedSwitch = 4;
-const int led = 2; //optional
+#define reedSwitch 4
+#define buzzer  2
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -12,19 +11,17 @@ AsyncWebServer server(80);
 // Detects whenever the door changed state
 bool changeState = false;
 
-// Holds reedswitch state (1=opened, 0=close)
+// Holds reedswitch state (0 = closed, 1 = open)
 bool state;
-String doorState;
+String doorState; 
 
-// Auxiliary variables (it will only detect changes that are 1500 milliseconds apart)
-unsigned long previousMillis = 0; 
-const long interval = 1500;
-
-const char* ssid = "AndroidAPAA86";
-const char* password = "wiuw1034";
+const char* ssid = "AndroidAP48E2";
+const char* password = "55555555";
 const char* host = "maker.ifttt.com";
 const char* apiKey = "mksnH5Hj0vKPnXlt26CV4SefTY-DdfDOAuodPN9skLw";
-const char* event = "door_status";
+const char* event = "Door_Monitor";
+unsigned long previousMillis = 0;
+unsigned long interval = 30000;
 
 
 // Runs whenever the reedswitch changes state
@@ -38,14 +35,17 @@ String readDoorStatus() {
   int reed_status;
   reed_status = digitalRead(reedSwitch);
   if (reed_status == 1){
+      //Turn on buzzer if door is open
     return String("Opened");
   }
   else{
+      //Do not turn on the buzzer if door is closed
     return String("Closed");
   }
   delay(1000);
   return String(reed_status);
 }
+
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
@@ -89,6 +89,7 @@ setInterval(function ( ) {
 </script>
 </html>)rawliteral";
 
+
 String processor(const String& var){
 if(var == "DOORSTATUS"){
     return readDoorStatus();
@@ -101,6 +102,18 @@ void setup() {
   // Serial port for debugging purposes
   Serial.begin(115200);
 
+  // Read the current door state
+  pinMode(reedSwitch, INPUT_PULLUP);
+  state = digitalRead(reedSwitch);
+
+  //Set buzzer state to match door state
+  pinMode(buzzer, OUTPUT);
+  digitalWrite(reedSwitch, INPUT);
+
+  // Set the reedswitch pin as interrupt, assign interrupt function and set CHANGE mode
+  attachInterrupt(digitalPinToInterrupt(reedSwitch), changeDoorStatus, CHANGE);
+  
+
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
@@ -110,6 +123,7 @@ void setup() {
     Serial.println("");
     Serial.println("WiFi connected");  
 
+   
      // Print ESP32 Local IP Address
   Serial.println(WiFi.localIP());
 
@@ -121,42 +135,36 @@ void setup() {
     request->send_P(200, "text/plain", readDoorStatus().c_str());
   });
 
-   // Read the current door state
-  pinMode(reedSwitch, INPUT_PULLUP);
-  state = digitalRead(reedSwitch);
-
-  // Set LED state to match door state
-  pinMode(led, OUTPUT);
-  digitalWrite(led, !state);
   
-  // Set the reedswitch pin as interrupt, assign interrupt function and set CHANGE mode
-  attachInterrupt(digitalPinToInterrupt(reedSwitch), changeDoorStatus, CHANGE);
-
   // Start server
   server.begin();
 }
 
 void loop() {
+
   if (changeState){
-    unsigned long currentMillis = millis();
-    if(currentMillis - previousMillis >= interval) {
-      previousMillis = currentMillis;
-      // If a state has occured, invert the current door state   
+
+      // If chnangeState has occured, invert the current door state   
       state = !state;
-      if(state) {
+      if(!state) {
         doorState = "closed";
       }
       else{
         doorState = "open";
       }
-      digitalWrite(led, !state);
+
+      //put the changeState to false so that it can detect the next changes
       changeState = false;
       Serial.println(state);
       Serial.println(doorState);
 
+
+      // if door is opened notify the owner
+      if(state){ 
       //Send email
       Serial.print("connecting to ");
       Serial.println(host);
+     
       WiFiClient client;
       const int httpPort = 80;
       if (!client.connect(host, httpPort)) {
@@ -175,7 +183,6 @@ void loop() {
   Serial.print("Requesting URL: ");
 
   Serial.println(url);
-
 
      // This will send the request to the server
 
@@ -212,6 +219,6 @@ while(client.connected())
 
   client.stop();
 
-    }  
+   }  
   }
 }
