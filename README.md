@@ -1,5 +1,5 @@
 # door-status-monitoring-system
->Project Title: Door-Status-Monitoring System
+> Project Title: Door-Status-Monitoring System
 > Moniters the status of lockers, cupboards, refrigrators using an ESP32 board and a magnetic reed switch.
 > The electrical circuit is closed when a magnet is near the switch—door; the circuit is closed.
 > When the magnet is far away from the switch—door; the circuit is open.
@@ -20,3 +20,10 @@
 - Jumper wires
 - Buzzer/ Alarm
 - MicroUSB wire
+
+> Applications:
+- Safety of lockers
+- Saftey of cupboards
+- Saftey of drawers
+- Safety of refrigrator
+- Can check windows and doors of a house in check.
