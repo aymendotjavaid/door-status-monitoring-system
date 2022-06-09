@@ -121,6 +121,7 @@ void setup() {
   // Set the reedswitch pin as interrupt, assign interrupt function and set CHANGE mode
   attachInterrupt(digitalPinToInterrupt(reedSwitch), changeDoorStatus, CHANGE);
   
+  
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
